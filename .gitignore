@@ -42,3 +42,6 @@ log/
 node_modules/
 
 .eslintcache
+
+# model_config
+model_config.yaml

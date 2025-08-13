@@ -1,5 +1,12 @@
 FROM golang:1.23.4
 
+# ==================== 新增代理配置 ====================
+ARG http_proxy
+ARG https_proxy
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+# ========================================================
+
 ARG RUN_MODE=dev
 ENV RUN_MODE=${RUN_MODE}
 
