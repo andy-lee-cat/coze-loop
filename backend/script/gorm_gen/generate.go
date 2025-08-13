@@ -20,6 +20,7 @@ func main() {
 	generateForEvaluationEvaluator(db)
 	generateForEvaluationExpt(db)
 	generateForObservability(db)
+	generateForFoundation(db)
 }
 
 func initDB() *gorm.DB {
@@ -200,5 +201,19 @@ func generateForObservability(db *gorm.DB) {
 	observabilityView := g.GenerateModelAs("observability_view", "ObservabilityView")
 
 	g.ApplyBasic(observabilityView)
+	g.Execute()
+}
+
+func generateForFoundation(db *gorm.DB) {
+	path := "modules/foundation/infra/repo/mysql/gorm_gen"
+	g := gen.NewGenerator(getGenerateConfig(path))
+	g.UseDB(db)
+
+	spaceModel := g.GenerateModelAs("space", "Space")
+	spaceUserModel := g.GenerateModelAs("space_user", "SpaceUser")
+	userModel := g.GenerateModelAs("user", "User")
+	apiKeyModel := g.GenerateModelAs("api_key", "APIKey")
+
+	g.ApplyBasic(spaceModel, spaceUserModel, userModel, apiKeyModel)
 	g.Execute()
 }
