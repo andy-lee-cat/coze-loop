@@ -1,0 +1,16 @@
+// .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to dlv",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "remotePath": "${workspaceFolder}",
+      "port": 40000, // 对应 docker-compose.yml 中 app 服务的 dlv 端口
+      "host": "127.0.0.1",
+      "showLog": true
+    }
+  ]
+}
