@@ -6,10 +6,10 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "alibaba-cloud.tongyi-lingma",
         "golang.go",
-        "google.geminicodeassist",
-        "gruntfuggly.todo-tree"
+        "Gruntfuggly.todo-tree",
+        "Alibaba-Cloud.tongyi-lingma",
+        "Google.geminicodeassist"
       ]
     }
   }

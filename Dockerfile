@@ -19,6 +19,18 @@ COPY . .
 # 基础依赖源设置
 RUN sh conf/docker/apt/source/apply.sh
 
+# ==================== 新增：安装和配置 Locale ====================
+RUN apt-get update && apt-get install -y locales && \
+    # 生成 en_US.UTF-8 和 zh_CN.UTF-8 两种 locale
+    sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    sed -i -e 's/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+# 设置全局默认的环境变量为 UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+# ================================================================
+
 # 安装依赖
 RUN sh conf/docker/apt/install/tools.sh
 RUN sh conf/docker/apt/install/nodejs.sh
