@@ -1,0 +1,16 @@
+{
+  "name": "Coze loop app",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/cozeloop",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "Gruntfuggly.todo-tree",
+        "Alibaba-Cloud.tongyi-lingma",
+        "Google.geminicodeassist"
+      ]
+    }
+  }
+}
