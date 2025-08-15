@@ -41,3 +41,6 @@ RUN bash conf/docker/build/backend.sh
 
 # 编译前端
 RUN sh conf/docker/build/frontend.sh
+
+# 我自己需用的命令
+RUN apt-get update && apt-get install -y tree
