@@ -384,19 +384,98 @@ sequenceDiagram
 2. **跑脚本生成框架** (`code_gen.sh`)
 3. **填空**：写 `Handler` 和 `Application` 的业务代码。
 
-# 关注
+# 项目结构
 
-## 需要关注的核心文件
+## 关注
 
 1. **实体定义文件**：
     - [/cozeloop/backend/modules/evaluation/domain/entity/target.go](javascript:void(0)) - 评估目标类型定义
 2. **服务接口文件**：
     - [/cozeloop/backend/modules/evaluation/domain/service/target.go](javascript:void(0)) - 评估目标服务接口
     - [/cozeloop/backend/modules/evaluation/domain/service/target_source.go](javascript:void(0)) - 评估目标源服务接口
-3. **服务实现文件**：
+3. **服务实现文件**：（对应接口_xx_impl.go）
     - [/cozeloop/backend/modules/evaluation/domain/service/target_impl.go](javascript:void(0)) - 评估目标服务实现
     - [/cozeloop/backend/modules/evaluation/domain/service/target_source_loopprompt_impl.go](javascript:void(0)) - Prompt 评估目标实现（可作为参考）
 4. **依赖注入配置**：
     - [/cozeloop/backend/modules/evaluation/application/wire.go](javascript:void(0)) - 服务注册配置
 5. **实验执行流程**：
     - [/cozeloop/backend/modules/evaluation/domain/service/expt_run_item_turn_impl.go](javascript:void(0)) - 实验项执行流程
+
+## 评测执行流程详解
+
+### 1. 入口：[experimentApplication.InvokeExperiment](javascript:void(0))
+
+这是评测执行的入口点，通过 API 调用触发：
+
+- 验证实验状态是否允许执行
+- 处理评测集项目（items）
+- 调用 [manager.Invoke](javascript:void(0))
+
+### 2. 管理器执行：[ExptMangerImpl.Invoke](javascript:void(0))
+
+在这个方法中：
+
+- 为每个评测项创建结果记录（[ExptItemResult](javascript:void(0)) 和 [ExptTurnResult](javascript:void(0))）
+- 发布调度事件 [ExptScheduleEvent](javascript:void(0)) 到消息队列
+
+### 3. 事件调度：[ExptSchedulerImpl.schedule](javascript:void(0))
+
+调度器处理事件：
+
+- 获取实验详情
+- 根据运行模式创建对应的调度器模式
+- 扫描待执行的评测项：[mode.ScanEvalItems](javascript:void(0))
+- 处理待提交项：[handleToSubmits](javascript:void(0))
+
+### 4. 评测项执行事件：[ExptItemEventEvalServiceImpl.eval](javascript:void(0))
+
+处理单个评测项的执行：
+
+- 构建执行上下文 [ExptItemEvalCtx](javascript:void(0))
+- 创建评测项执行器 [ExptItemEvalCtxExecutor](javascript:void(0))
+
+### 5. 评测项执行：[ExptItemEvalCtxExecutor.Eval](javascript:void(0))
+
+执行评测项：
+
+- 遍历所有轮次（turns）
+- 为每个轮次构建执行上下文 [ExptTurnEvalCtx](javascript:void(0))
+- 调用轮次执行器：[NewExptTurnEvaluation](javascript:void(0))
+
+### 6. 轮次执行：[DefaultExptTurnEvaluationImpl.Eval](javascript:void(0))
+
+执行单个轮次：
+
+- 调用 [CallTarget](javascript:void(0)) 执行目标评估
+- 调用 [CallEvaluators](javascript:void(0)) 执行评估器
+
+### 7. 目标评估执行：[callTarget](javascript:void(0))
+
+执行目标评估：
+
+- 从实验配置中获取目标配置
+- 构造输入数据
+- 调用 [evalTargetService.ExecuteTarget](javascript:void(0))
+
+### 8. 评估目标服务执行：[EvalTargetServiceImpl.ExecuteTarget](javascript:void(0))
+
+评估目标服务实现：
+
+- 获取评估目标版本信息
+- 根据目标类型从 [typedOperators](javascript:void(0)) 映射中获取对应的执行器
+- 调用执行器的 [ValidateInput](javascript:void(0)) 方法验证输入
+- 调用执行器的 [Execute](javascript:void(0)) 方法执行评估
+
+### 9. 具体目标执行：[PromptSourceEvalTargetServiceImpl.Execute](javascript:void(0))
+
+以 Prompt 类型为例，执行具体的目标：
+
+- 构造 Prompt 执行参数
+- 通过 RPC 调用执行 Prompt
+- 处理执行结果并返回
+
+## 总结
+
+整个评测执行流程是一个典型的事件驱动架构，通过消息队列实现异步处理。流程从 API 调用开始，经过管理器、调度器、事件处理器、项执行器、轮次执行器，最终到达具体的评估目标执行器。每个环节都有明确的职责分工，形成了一个完整的评测执行链路。
+
+对于您的需求（添加 HTTP 评估目标），需要实现一个新的 [ISourceEvalTargetOperateService](javascript:void(0)) 接口实现，重点实现 [Execute](javascript:void(0)) 方法来发送 HTTP 请求并处理响应。
