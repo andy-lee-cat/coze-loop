@@ -309,6 +309,16 @@ struct ListExperimentStatsResponse {
     255: base.BaseResp BaseResp
 }
 
+struct AddNumbersRequest {
+    1: required double num1 (api.body='num1', go.tag='json:"num1"')
+    2: required double num2 (api.body='num2', go.tag='json:"num2"')
+}
+
+struct AddNumbersResponse {
+    1: optional double result (go.tag='json:"result"')
+    2: base.BaseResp base_resp (go.tag='json:"base_resp"')
+}
+
 service ExperimentService {
 
     CheckExperimentNameResponse CheckExperimentName(1: CheckExperimentNameRequest req) (api.post = '/api/evaluation/v1/experiments/check_name')
@@ -349,5 +359,8 @@ service ExperimentService {
     FinishExperimentResponse FinishExperiment(1: FinishExperimentRequest req)
 
     ListExperimentStatsResponse ListExperimentStats(1: ListExperimentStatsRequest req)
+
+    // test
+    AddNumbersResponse AddNumbers(1: AddNumbersRequest req) (api.post = '/api/evaluation/v1/experiments/add_numbers')
 }
 

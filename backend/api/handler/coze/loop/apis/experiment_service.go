@@ -116,3 +116,9 @@ func ListExperimentStats(ctx context.Context, c *app.RequestContext) {
 
 	c.JSON(consts.StatusOK, resp)
 }
+
+// AddNumbers .
+// @router /api/evaluation/v1/experiments/add_numbers [POST]
+func AddNumbers(ctx context.Context, c *app.RequestContext) {
+	invokeAndRender(ctx, c, localExptSvc.AddNumbers)
+}

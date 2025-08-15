@@ -389,6 +389,29 @@ func (l *LocalExperimentService) ListExperimentStats(ctx context.Context, req *e
 	return result.GetSuccess(), nil
 }
 
+// AddNumbers
+// test
+func (l *LocalExperimentService) AddNumbers(ctx context.Context, req *expt.AddNumbersRequest, callOptions ...callopt.Option) (*expt.AddNumbersResponse, error) {
+	chain := l.mds(func(ctx context.Context, in, out interface{}) error {
+		arg := in.(*expt.ExperimentServiceAddNumbersArgs)
+		result := out.(*expt.ExperimentServiceAddNumbersResult)
+		resp, err := l.impl.AddNumbers(ctx, arg.Req)
+		if err != nil {
+			return err
+		}
+		result.SetSuccess(resp)
+		return nil
+	})
+
+	arg := &expt.ExperimentServiceAddNumbersArgs{Req: req}
+	result := &expt.ExperimentServiceAddNumbersResult{}
+	ctx = l.injectRPCInfo(ctx, "AddNumbers")
+	if err := chain(ctx, arg, result); err != nil {
+		return nil, err
+	}
+	return result.GetSuccess(), nil
+}
+
 func (l *LocalExperimentService) injectRPCInfo(ctx context.Context, method string) context.Context {
 	rpcStats := rpcinfo.AsMutableRPCStats(rpcinfo.NewRPCStats())
 	ri := rpcinfo.NewRPCInfo(

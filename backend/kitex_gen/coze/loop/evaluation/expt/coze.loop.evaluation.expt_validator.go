@@ -379,3 +379,14 @@ func (p *ListExperimentStatsResponse) IsValid() error {
 	}
 	return nil
 }
+func (p *AddNumbersRequest) IsValid() error {
+	return nil
+}
+func (p *AddNumbersResponse) IsValid() error {
+	if p.BaseResp != nil {
+		if err := p.BaseResp.IsValid(); err != nil {
+			return fmt.Errorf("field BaseResp not valid, %w", err)
+		}
+	}
+	return nil
+}

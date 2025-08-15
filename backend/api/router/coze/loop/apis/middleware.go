@@ -987,3 +987,8 @@ func _deletepromptMw(handler *apis.APIHandler) []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _addnumbersMw(handler *apis.APIHandler) []app.HandlerFunc {
+	// your code...
+	return nil
+}

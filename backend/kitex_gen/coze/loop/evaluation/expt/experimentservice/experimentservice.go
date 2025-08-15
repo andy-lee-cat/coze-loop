@@ -132,6 +132,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"AddNumbers": kitex.NewMethodInfo(
+		addNumbersHandler,
+		newExperimentServiceAddNumbersArgs,
+		newExperimentServiceAddNumbersResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 }
 
 var (
@@ -488,6 +495,25 @@ func newExperimentServiceListExperimentStatsResult() interface{} {
 	return expt.NewExperimentServiceListExperimentStatsResult()
 }
 
+func addNumbersHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*expt.ExperimentServiceAddNumbersArgs)
+	realResult := result.(*expt.ExperimentServiceAddNumbersResult)
+	success, err := handler.(expt.ExperimentService).AddNumbers(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newExperimentServiceAddNumbersArgs() interface{} {
+	return expt.NewExperimentServiceAddNumbersArgs()
+}
+
+func newExperimentServiceAddNumbersResult() interface{} {
+	return expt.NewExperimentServiceAddNumbersResult()
+}
+
 type kClient struct {
 	c  client.Client
 	sc client.Streaming
@@ -665,6 +691,16 @@ func (p *kClient) ListExperimentStats(ctx context.Context, req *expt.ListExperim
 	_args.Req = req
 	var _result expt.ExperimentServiceListExperimentStatsResult
 	if err = p.c.Call(ctx, "ListExperimentStats", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) AddNumbers(ctx context.Context, req *expt.AddNumbersRequest) (r *expt.AddNumbersResponse, err error) {
+	var _args expt.ExperimentServiceAddNumbersArgs
+	_args.Req = req
+	var _result expt.ExperimentServiceAddNumbersResult
+	if err = p.c.Call(ctx, "AddNumbers", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

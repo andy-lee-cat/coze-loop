@@ -701,3 +701,12 @@ func hasDuplicates(slice []int64) bool {
 
 	return false
 }
+
+func (e *experimentApplication) AddNumbers(ctx context.Context, req *expt.AddNumbersRequest) (*expt.AddNumbersResponse, error) {
+	sum := req.Num1 + req.Num2
+	resp := &expt.AddNumbersResponse{
+		Result_: &sum,
+		BaseResp: base.NewBaseResp(),
+	}
+	return resp, nil
+}
