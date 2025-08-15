@@ -45,3 +45,6 @@ node_modules/
 
 # model_config
 model_config.yaml
+
+# test
+*lthts*
