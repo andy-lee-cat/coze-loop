@@ -15,6 +15,7 @@ ENV https_proxy=$https_proxy
 ```
 
 在docker-compose.yml中加代理服务器（代理服务要启动好监听10809）
+
 ```dockerfile
   app:
     platform: linux/amd64
@@ -174,12 +175,33 @@ docker logs -f cozeloop-nginx
 
 Dockerfile里面配好中文包（可以在内部git commit中文）
 
-```
+```sh
 curl -X POST http://8.130.124.150:8082/api/evaluation/v1/experiments/add_numbers \
 -H "Content-Type: application/json" \
 -b "session_key=eyXXXXXXXXXXXXX" \
 -d '{"num1": 10, "num2": 52}'
 ```
+
+``` js
+fetch('/api/evaluation/v1/experiments/add_numbers', {
+    // 1. 请求方法
+    method: 'POST',
+    // 2. 请求头
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    // 3. 请求体 (注意：需要将JS对象转换为JSON字符串)
+    body: JSON.stringify({
+        num1: 100,
+        num2: 23
+    })
+})
+.then(response => response.json()) // 将响应体解析为JSON
+.then(data => console.log(data))   // 将解析后的数据显示在控制台
+.catch(error => console.error('请求失败:', error)); // 如果请求失败，打印错误
+```
+
+
 
 # 基本开发流程
 
@@ -361,3 +383,20 @@ sequenceDiagram
 1. **改蓝图** (`.thrift`)
 2. **跑脚本生成框架** (`code_gen.sh`)
 3. **填空**：写 `Handler` 和 `Application` 的业务代码。
+
+# 关注
+
+## 需要关注的核心文件
+
+1. **实体定义文件**：
+    - [/cozeloop/backend/modules/evaluation/domain/entity/target.go](javascript:void(0)) - 评估目标类型定义
+2. **服务接口文件**：
+    - [/cozeloop/backend/modules/evaluation/domain/service/target.go](javascript:void(0)) - 评估目标服务接口
+    - [/cozeloop/backend/modules/evaluation/domain/service/target_source.go](javascript:void(0)) - 评估目标源服务接口
+3. **服务实现文件**：
+    - [/cozeloop/backend/modules/evaluation/domain/service/target_impl.go](javascript:void(0)) - 评估目标服务实现
+    - [/cozeloop/backend/modules/evaluation/domain/service/target_source_loopprompt_impl.go](javascript:void(0)) - Prompt 评估目标实现（可作为参考）
+4. **依赖注入配置**：
+    - [/cozeloop/backend/modules/evaluation/application/wire.go](javascript:void(0)) - 服务注册配置
+5. **实验执行流程**：
+    - [/cozeloop/backend/modules/evaluation/domain/service/expt_run_item_turn_impl.go](javascript:void(0)) - 实验项执行流程
