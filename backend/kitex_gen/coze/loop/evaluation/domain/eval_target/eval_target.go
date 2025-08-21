@@ -20,6 +20,8 @@ const (
 	EvalTargetType_CozeLoopPrompt EvalTargetType = 2
 	// Trace
 	EvalTargetType_Trace EvalTargetType = 3
+	// DifyWorkflow
+	EvalTargetType_DifyWorkflow EvalTargetType = 4
 )
 
 func (p EvalTargetType) String() string {
@@ -30,6 +32,8 @@ func (p EvalTargetType) String() string {
 		return "CozeLoopPrompt"
 	case EvalTargetType_Trace:
 		return "Trace"
+	case EvalTargetType_DifyWorkflow:
+		return "DifyWorkflow"
 	}
 	return "<UNSET>"
 }
@@ -42,6 +46,8 @@ func EvalTargetTypeFromString(s string) (EvalTargetType, error) {
 		return EvalTargetType_CozeLoopPrompt, nil
 	case "Trace":
 		return EvalTargetType_Trace, nil
+	case "DifyWorkflow":
+		return EvalTargetType_DifyWorkflow, nil
 	}
 	return EvalTargetType(0), fmt.Errorf("not a valid EvalTargetType string")
 }
@@ -1367,10 +1373,12 @@ type EvalTargetContent struct {
 	// 输出schema
 	OutputSchemas []*common.ArgsSchema `thrift:"output_schemas,2,optional" frugal:"2,optional,list<common.ArgsSchema>" json:"output_schemas" form:"output_schemas" query:"output_schemas"`
 	// 101-200 EvalTarget类型
-	// EvalTargetType=0 时，传参此字段。 评测对象为 CozeBot 时, 需要设置 CozeBot 信息
+	// EvalTargetType=1 时，传参此字段。 评测对象为 CozeBot 时, 需要设置 CozeBot 信息
 	CozeBot *CozeBot `thrift:"coze_bot,101,optional" frugal:"101,optional,CozeBot" form:"coze_bot" json:"coze_bot,omitempty" query:"coze_bot"`
-	// EvalTargetType=1 时，传参此字段。 评测对象为 EvalPrompt 时, 需要设置 Prompt 信息
+	// EvalTargetType=2 时，传参此字段。 评测对象为 EvalPrompt 时, 需要设置 Prompt 信息
 	Prompt *EvalPrompt `thrift:"prompt,102,optional" frugal:"102,optional,EvalPrompt" form:"prompt" json:"prompt,omitempty" query:"prompt"`
+	// EvalTargetType=4 时，传参此字段。 评测对象为 DifyWorkflow 时, 需要设置 DifyWorkflow 信息
+	DifyWorkflow *DifyWorkflow `thrift:"dify_workflow,104,optional" frugal:"104,optional,DifyWorkflow" form:"dify_workflow" json:"dify_workflow,omitempty" query:"dify_workflow"`
 }
 
 func NewEvalTargetContent() *EvalTargetContent {
@@ -1427,6 +1435,18 @@ func (p *EvalTargetContent) GetPrompt() (v *EvalPrompt) {
 	}
 	return p.Prompt
 }
+
+var EvalTargetContent_DifyWorkflow_DEFAULT *DifyWorkflow
+
+func (p *EvalTargetContent) GetDifyWorkflow() (v *DifyWorkflow) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDifyWorkflow() {
+		return EvalTargetContent_DifyWorkflow_DEFAULT
+	}
+	return p.DifyWorkflow
+}
 func (p *EvalTargetContent) SetInputSchemas(val []*common.ArgsSchema) {
 	p.InputSchemas = val
 }
@@ -1439,12 +1459,16 @@ func (p *EvalTargetContent) SetCozeBot(val *CozeBot) {
 func (p *EvalTargetContent) SetPrompt(val *EvalPrompt) {
 	p.Prompt = val
 }
+func (p *EvalTargetContent) SetDifyWorkflow(val *DifyWorkflow) {
+	p.DifyWorkflow = val
+}
 
 var fieldIDToName_EvalTargetContent = map[int16]string{
 	1:   "input_schemas",
 	2:   "output_schemas",
 	101: "coze_bot",
 	102: "prompt",
+	104: "dify_workflow",
 }
 
 func (p *EvalTargetContent) IsSetInputSchemas() bool {
@@ -1461,6 +1485,10 @@ func (p *EvalTargetContent) IsSetCozeBot() bool {
 
 func (p *EvalTargetContent) IsSetPrompt() bool {
 	return p.Prompt != nil
+}
+
+func (p *EvalTargetContent) IsSetDifyWorkflow() bool {
+	return p.DifyWorkflow != nil
 }
 
 func (p *EvalTargetContent) Read(iprot thrift.TProtocol) (err error) {
@@ -1508,6 +1536,14 @@ func (p *EvalTargetContent) Read(iprot thrift.TProtocol) (err error) {
 		case 102:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField102(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 104:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField104(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -1604,6 +1640,14 @@ func (p *EvalTargetContent) ReadField102(iprot thrift.TProtocol) error {
 	p.Prompt = _field
 	return nil
 }
+func (p *EvalTargetContent) ReadField104(iprot thrift.TProtocol) error {
+	_field := NewDifyWorkflow()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.DifyWorkflow = _field
+	return nil
+}
 
 func (p *EvalTargetContent) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -1625,6 +1669,10 @@ func (p *EvalTargetContent) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField102(oprot); err != nil {
 			fieldId = 102
+			goto WriteFieldError
+		}
+		if err = p.writeField104(oprot); err != nil {
+			fieldId = 104
 			goto WriteFieldError
 		}
 	}
@@ -1733,6 +1781,24 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 102 end error: ", p), err)
 }
+func (p *EvalTargetContent) writeField104(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDifyWorkflow() {
+		if err = oprot.WriteFieldBegin("dify_workflow", thrift.STRUCT, 104); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.DifyWorkflow.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 104 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 104 end error: ", p), err)
+}
 
 func (p *EvalTargetContent) String() string {
 	if p == nil {
@@ -1758,6 +1824,9 @@ func (p *EvalTargetContent) DeepEqual(ano *EvalTargetContent) bool {
 		return false
 	}
 	if !p.Field102DeepEqual(ano.Prompt) {
+		return false
+	}
+	if !p.Field104DeepEqual(ano.DifyWorkflow) {
 		return false
 	}
 	return true
@@ -1799,6 +1868,351 @@ func (p *EvalTargetContent) Field101DeepEqual(src *CozeBot) bool {
 func (p *EvalTargetContent) Field102DeepEqual(src *EvalPrompt) bool {
 
 	if !p.Prompt.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *EvalTargetContent) Field104DeepEqual(src *DifyWorkflow) bool {
+
+	if !p.DifyWorkflow.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type DifyWorkflow struct {
+	// Dify Workflow名称
+	Name *string `thrift:"name,1,optional" frugal:"1,optional,string" json:"name" form:"name" query:"name"`
+	// Dify Workflow描述
+	Description *string `thrift:"description,2,optional" frugal:"2,optional,string" json:"description" form:"description" query:"description"`
+	// Dify API Key，使用json:"-"避免在API响应中暴露
+	APIKey *string `thrift:"api_key,3,optional" frugal:"3,optional,string" json:"-" form:"api_key" query:"api_key"`
+}
+
+func NewDifyWorkflow() *DifyWorkflow {
+	return &DifyWorkflow{}
+}
+
+func (p *DifyWorkflow) InitDefault() {
+}
+
+var DifyWorkflow_Name_DEFAULT string
+
+func (p *DifyWorkflow) GetName() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetName() {
+		return DifyWorkflow_Name_DEFAULT
+	}
+	return *p.Name
+}
+
+var DifyWorkflow_Description_DEFAULT string
+
+func (p *DifyWorkflow) GetDescription() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetDescription() {
+		return DifyWorkflow_Description_DEFAULT
+	}
+	return *p.Description
+}
+
+var DifyWorkflow_APIKey_DEFAULT string
+
+func (p *DifyWorkflow) GetAPIKey() (v string) {
+	if p == nil {
+		return
+	}
+	if !p.IsSetAPIKey() {
+		return DifyWorkflow_APIKey_DEFAULT
+	}
+	return *p.APIKey
+}
+func (p *DifyWorkflow) SetName(val *string) {
+	p.Name = val
+}
+func (p *DifyWorkflow) SetDescription(val *string) {
+	p.Description = val
+}
+func (p *DifyWorkflow) SetAPIKey(val *string) {
+	p.APIKey = val
+}
+
+var fieldIDToName_DifyWorkflow = map[int16]string{
+	1: "name",
+	2: "description",
+	3: "api_key",
+}
+
+func (p *DifyWorkflow) IsSetName() bool {
+	return p.Name != nil
+}
+
+func (p *DifyWorkflow) IsSetDescription() bool {
+	return p.Description != nil
+}
+
+func (p *DifyWorkflow) IsSetAPIKey() bool {
+	return p.APIKey != nil
+}
+
+func (p *DifyWorkflow) Read(iprot thrift.TProtocol) (err error) {
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_DifyWorkflow[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *DifyWorkflow) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Name = _field
+	return nil
+}
+func (p *DifyWorkflow) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.Description = _field
+	return nil
+}
+func (p *DifyWorkflow) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.APIKey = _field
+	return nil
+}
+
+func (p *DifyWorkflow) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("DifyWorkflow"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *DifyWorkflow) writeField1(oprot thrift.TProtocol) (err error) {
+	if p.IsSetName() {
+		if err = oprot.WriteFieldBegin("name", thrift.STRING, 1); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Name); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+func (p *DifyWorkflow) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetDescription() {
+		if err = oprot.WriteFieldBegin("description", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Description); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+func (p *DifyWorkflow) writeField3(oprot thrift.TProtocol) (err error) {
+	if p.IsSetAPIKey() {
+		if err = oprot.WriteFieldBegin("api_key", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.APIKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *DifyWorkflow) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DifyWorkflow(%+v)", *p)
+
+}
+
+func (p *DifyWorkflow) DeepEqual(ano *DifyWorkflow) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Name) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Description) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.APIKey) {
+		return false
+	}
+	return true
+}
+
+func (p *DifyWorkflow) Field1DeepEqual(src *string) bool {
+
+	if p.Name == src {
+		return true
+	} else if p.Name == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Name, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *DifyWorkflow) Field2DeepEqual(src *string) bool {
+
+	if p.Description == src {
+		return true
+	} else if p.Description == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.Description, *src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *DifyWorkflow) Field3DeepEqual(src *string) bool {
+
+	if p.APIKey == src {
+		return true
+	} else if p.APIKey == nil || src == nil {
+		return false
+	}
+	if strings.Compare(*p.APIKey, *src) != 0 {
 		return false
 	}
 	return true
@@ -2388,8 +2802,7 @@ type CozeBot struct {
 	// DTO使用，不存数据库
 	Description *string `thrift:"description,7,optional" frugal:"7,optional,string" form:"description" json:"description,omitempty" query:"description"`
 	// 如果是发布版本则这个字段不为空
-	PublishVersion *string          `thrift:"publish_version,8,optional" frugal:"8,optional,string" form:"publish_version" json:"publish_version,omitempty" query:"publish_version"`
-	BaseInfo       *common.BaseInfo `thrift:"base_info,100,optional" frugal:"100,optional,common.BaseInfo" json:"base_info" form:"base_info" query:"base_info"`
+	PublishVersion *string `thrift:"publish_version,8,optional" frugal:"8,optional,string" form:"publish_version" json:"publish_version,omitempty" query:"publish_version"`
 }
 
 func NewCozeBot() *CozeBot {
@@ -2494,18 +2907,6 @@ func (p *CozeBot) GetPublishVersion() (v string) {
 	}
 	return *p.PublishVersion
 }
-
-var CozeBot_BaseInfo_DEFAULT *common.BaseInfo
-
-func (p *CozeBot) GetBaseInfo() (v *common.BaseInfo) {
-	if p == nil {
-		return
-	}
-	if !p.IsSetBaseInfo() {
-		return CozeBot_BaseInfo_DEFAULT
-	}
-	return p.BaseInfo
-}
 func (p *CozeBot) SetBotID(val *int64) {
 	p.BotID = val
 }
@@ -2530,20 +2931,16 @@ func (p *CozeBot) SetDescription(val *string) {
 func (p *CozeBot) SetPublishVersion(val *string) {
 	p.PublishVersion = val
 }
-func (p *CozeBot) SetBaseInfo(val *common.BaseInfo) {
-	p.BaseInfo = val
-}
 
 var fieldIDToName_CozeBot = map[int16]string{
-	1:   "bot_id",
-	2:   "bot_version",
-	3:   "bot_info_type",
-	4:   "model_info",
-	5:   "bot_name",
-	6:   "avatar_url",
-	7:   "description",
-	8:   "publish_version",
-	100: "base_info",
+	1: "bot_id",
+	2: "bot_version",
+	3: "bot_info_type",
+	4: "model_info",
+	5: "bot_name",
+	6: "avatar_url",
+	7: "description",
+	8: "publish_version",
 }
 
 func (p *CozeBot) IsSetBotID() bool {
@@ -2576,10 +2973,6 @@ func (p *CozeBot) IsSetDescription() bool {
 
 func (p *CozeBot) IsSetPublishVersion() bool {
 	return p.PublishVersion != nil
-}
-
-func (p *CozeBot) IsSetBaseInfo() bool {
-	return p.BaseInfo != nil
 }
 
 func (p *CozeBot) Read(iprot thrift.TProtocol) (err error) {
@@ -2659,14 +3052,6 @@ func (p *CozeBot) Read(iprot thrift.TProtocol) (err error) {
 		case 8:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField8(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		case 100:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField100(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2787,14 +3172,6 @@ func (p *CozeBot) ReadField8(iprot thrift.TProtocol) error {
 	p.PublishVersion = _field
 	return nil
 }
-func (p *CozeBot) ReadField100(iprot thrift.TProtocol) error {
-	_field := common.NewBaseInfo()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.BaseInfo = _field
-	return nil
-}
 
 func (p *CozeBot) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -2832,10 +3209,6 @@ func (p *CozeBot) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField8(oprot); err != nil {
 			fieldId = 8
-			goto WriteFieldError
-		}
-		if err = p.writeField100(oprot); err != nil {
-			fieldId = 100
 			goto WriteFieldError
 		}
 	}
@@ -3000,24 +3373,6 @@ WriteFieldBeginError:
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 8 end error: ", p), err)
 }
-func (p *CozeBot) writeField100(oprot thrift.TProtocol) (err error) {
-	if p.IsSetBaseInfo() {
-		if err = oprot.WriteFieldBegin("base_info", thrift.STRUCT, 100); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := p.BaseInfo.Write(oprot); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 100 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 100 end error: ", p), err)
-}
 
 func (p *CozeBot) String() string {
 	if p == nil {
@@ -3055,9 +3410,6 @@ func (p *CozeBot) DeepEqual(ano *CozeBot) bool {
 		return false
 	}
 	if !p.Field8DeepEqual(ano.PublishVersion) {
-		return false
-	}
-	if !p.Field100DeepEqual(ano.BaseInfo) {
 		return false
 	}
 	return true
@@ -3150,13 +3502,6 @@ func (p *CozeBot) Field8DeepEqual(src *string) bool {
 		return false
 	}
 	if strings.Compare(*p.PublishVersion, *src) != 0 {
-		return false
-	}
-	return true
-}
-func (p *CozeBot) Field100DeepEqual(src *common.BaseInfo) bool {
-
-	if !p.BaseInfo.DeepEqual(src) {
 		return false
 	}
 	return true

@@ -33,16 +33,24 @@ struct EvalTargetContent {
     2: optional list<common.ArgsSchema> output_schemas (go.tag='json:\"output_schemas\"') // 输出schema
 
     // 101-200 EvalTarget类型
-    // EvalTargetType=0 时，传参此字段。 评测对象为 CozeBot 时, 需要设置 CozeBot 信息
+    // EvalTargetType=1 时，传参此字段。 评测对象为 CozeBot 时, 需要设置 CozeBot 信息
     101: optional CozeBot coze_bot
-    // EvalTargetType=1 时，传参此字段。 评测对象为 EvalPrompt 时, 需要设置 Prompt 信息
+    // EvalTargetType=2 时，传参此字段。 评测对象为 EvalPrompt 时, 需要设置 Prompt 信息
     102: optional EvalPrompt prompt
+    // EvalTargetType=4 时，传参此字段。 评测对象为 DifyWorkflow 时, 需要设置 DifyWorkflow 信息
+    104: optional DifyWorkflow dify_workflow
 }
 
 enum EvalTargetType {
     CozeBot = 1 // CozeBot
     CozeLoopPrompt = 2 // Prompt
     Trace = 3 // Trace
+    DifyWorkflow = 4 // DifyWorkflow
+}
+struct DifyWorkflow {
+    1: optional string name (go.tag='json:"name"') // Dify Workflow名称
+    2: optional string description (go.tag='json:"description"') // Dify Workflow描述
+    3: optional string api_key (go.tag='json:"-"') // Dify API Key，使用json:"-"避免在API响应中暴露
 }
 
 struct EvalPrompt{

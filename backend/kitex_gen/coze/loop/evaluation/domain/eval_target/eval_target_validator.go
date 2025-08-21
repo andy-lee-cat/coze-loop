@@ -58,6 +58,14 @@ func (p *EvalTargetContent) IsValid() error {
 			return fmt.Errorf("field Prompt not valid, %w", err)
 		}
 	}
+	if p.DifyWorkflow != nil {
+		if err := p.DifyWorkflow.IsValid(); err != nil {
+			return fmt.Errorf("field DifyWorkflow not valid, %w", err)
+		}
+	}
+	return nil
+}
+func (p *DifyWorkflow) IsValid() error {
 	return nil
 }
 func (p *EvalPrompt) IsValid() error {
@@ -67,11 +75,6 @@ func (p *CozeBot) IsValid() error {
 	if p.ModelInfo != nil {
 		if err := p.ModelInfo.IsValid(); err != nil {
 			return fmt.Errorf("field ModelInfo not valid, %w", err)
-		}
-	}
-	if p.BaseInfo != nil {
-		if err := p.BaseInfo.IsValid(); err != nil {
-			return fmt.Errorf("field BaseInfo not valid, %w", err)
 		}
 	}
 	return nil

@@ -221,8 +221,11 @@ var (
 	)
 )
 
-func NewSourceTargetOperators(adapter rpc.IPromptRPCAdapter) map[entity.EvalTargetType]service.ISourceEvalTargetOperateService {
-	return map[entity.EvalTargetType]service.ISourceEvalTargetOperateService{entity.EvalTargetTypeLoopPrompt: service.NewPromptSourceEvalTargetServiceImpl(adapter)}
+func NewSourceTargetOperators(adapter rpc.IPromptRPCAdapter, configer conf.IConfiger) map[entity.EvalTargetType]service.ISourceEvalTargetOperateService {
+	return map[entity.EvalTargetType]service.ISourceEvalTargetOperateService{
+		entity.EvalTargetTypeLoopPrompt:   service.NewPromptSourceEvalTargetServiceImpl(adapter),
+		entity.EvalTargetTypeDifyWorkflow: service.NewDifyWorkflowSourceEvalTargetServiceImpl(configer),
+	}
 }
 
 func NewLock(cmdable redis.Cmdable) lock.ILocker {

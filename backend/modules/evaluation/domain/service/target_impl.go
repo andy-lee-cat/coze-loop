@@ -38,6 +38,7 @@ func NewEvalTargetServiceImpl(evalTargetRepo repo.IEvalTargetRepo,
 	metric metrics.EvalTargetMetrics,
 	typedOperators map[entity.EvalTargetType]ISourceEvalTargetOperateService,
 ) IEvalTargetService {
+
 	singletonEvalTargetService := &EvalTargetServiceImpl{
 		evalTargetRepo: evalTargetRepo,
 		idgen:          idgen,
@@ -51,9 +52,6 @@ func (e *EvalTargetServiceImpl) CreateEvalTarget(ctx context.Context, spaceID in
 	defer func() {
 		e.metric.EmitCreate(spaceID, err)
 	}()
-	if e.typedOperators[targetType] == nil {
-		return 0, 0, errorx.NewByCode(errno.CommonInvalidParamCode, errorx.WithExtraMsg("target type not support"))
-	}
 	do, err := e.typedOperators[targetType].BuildBySource(ctx, spaceID, sourceTargetID, sourceTargetVersion, opts...)
 	if err != nil {
 		return 0, 0, err

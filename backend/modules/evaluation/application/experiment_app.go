@@ -87,6 +87,7 @@ func NewExperimentApplication(
 }
 
 func (e *experimentApplication) CreateExperiment(ctx context.Context, req *expt.CreateExperimentRequest) (r *expt.CreateExperimentResponse, err error) {
+	logs.CtxInfo(ctx, "DEBUG: CreateExperiment req: %v", req)
 	if req.CreateEvalTargetParam == nil {
 		return nil, errorx.NewByCode(errno.CommonInvalidParamCode)
 	}
